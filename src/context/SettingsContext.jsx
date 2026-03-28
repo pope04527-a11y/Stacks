@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://stacksapp-backend.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://stacks2-backend.onrender.com";
 
 const SettingsContext = createContext({
   settings: null,

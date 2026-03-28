@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import csImage from "../assets/images/CS-Keymus.png";
+import csImage from "../assets/images/Cs.jpg";
 
 export default function CustomerServiceModal({ open, onClose }) {
   const [links, setLinks] = useState({

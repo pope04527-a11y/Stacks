@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 // Event images
 import event1 from "../assets/images/events/event1.png";
 import event2 from "../assets/images/events/event2.png";
-import event3 from "../assets/images/events/event3.png";
+import event3 from "../assets/images/events/IMAGE 2026-03-28 20:35:03.jpg";
 
 const START_BLUE = "#1fb6fc";
 

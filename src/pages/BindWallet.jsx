@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const START_BLUE = "#1fb6fc";
 
 // Use your API backend URL here!
-const BACKEND_API = "https://stacksapp-backend.onrender.com/api";
+const BACKEND_API = "https://stacks2-backend.onrender.com/api";
 
 export default function BindWallet() {
   const [fullName, setFullName] = useState("");

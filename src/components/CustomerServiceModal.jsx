@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import csImage from "../assets/images/Cs.jpg";
 
 export default function CustomerServiceModal({ open, onClose }) {
   const [links, setLinks] = useState({
@@ -40,7 +39,7 @@ export default function CustomerServiceModal({ open, onClose }) {
 
   const avatar = (
     <img
-      src={csImage}
+      src="/assets/images/Cs.jpg"
       alt="service"
       data-i18n-alt="service"
       style={{

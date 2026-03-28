@@ -9,7 +9,7 @@ export default function CustomerServiceModal({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
-    fetch("https://stacks2-backend.onrender.com/service-links.json?ts=" + Date.now())
+    fetch("https://stacksapp-backend-main.onrender.com/service-links.json?ts=" + Date.now())
       .then((res) => res.json())
       .then((data) => {
         setLinks({
@@ -29,7 +29,7 @@ export default function CustomerServiceModal({ open, onClose }) {
     <svg width="20" height="20" viewBox="0 0 18 18" style={{ marginLeft: "auto" }} aria-hidden>
       <path
         d="M6 4l4 5-4 5"
-        stroke="#0b63d6"
+        stroke="#22B8FF"
         strokeWidth="2.5"
         fill="none"
         strokeLinecap="round"
@@ -49,8 +49,8 @@ export default function CustomerServiceModal({ open, onClose }) {
         marginRight: 14,
         objectFit: "cover",
         background: "transparent",
-        border: "2px solid #0b63d6",
-        boxShadow: "0 2px 8px rgba(11, 99, 214, 0.15)",
+        border: "2px solid #22B8FF",
+        boxShadow: "0 2px 8px rgba(34, 184, 255, 0.15)",
       }}
     />
   );
@@ -91,7 +91,7 @@ export default function CustomerServiceModal({ open, onClose }) {
           style={{
             background: "linear-gradient(135deg, #ffffff 0%, #f8fafb 50%, #f0f4f8 100%)",
             borderRadius: 20,
-            boxShadow: "0 4px 12px rgba(11, 99, 214, 0.08), 0 0 1px rgba(11, 99, 214, 0.1)",
+            boxShadow: "0 4px 12px rgba(34, 184, 255, 0.08), 0 0 1px rgba(34, 184, 255, 0.1)",
             minWidth: 360,
             maxWidth: 520,
             width: "100%",
@@ -100,7 +100,7 @@ export default function CustomerServiceModal({ open, onClose }) {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            border: "1px solid rgba(11, 99, 214, 0.15)",
+            border: "1px solid rgba(34, 184, 255, 0.15)",
             color: "#071e2f",
             overflow: "hidden",
             pointerEvents: "auto",
@@ -123,10 +123,10 @@ export default function CustomerServiceModal({ open, onClose }) {
           {/* Header with gradient */}
           <div
             style={{
-              background: "linear-gradient(135deg, #0b63d6 0%, #0a52b8 100%)",
+              background: "linear-gradient(135deg, #22B8FF 0%, #22B8FF 100%)",
               padding: "24px 22px 16px 22px",
               color: "#ffffff",
-              borderBottom: "1px solid rgba(11, 99, 214, 0.2)",
+              borderBottom: "1px solid rgba(34, 184, 255, 0.2)",
             }}
           >
             <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: 0.5 }}>
@@ -148,7 +148,7 @@ export default function CustomerServiceModal({ open, onClose }) {
                   return;
                 }
 
-                const chatUrl = `https://stacks-cs.onrender.com/?user=${encodeURIComponent(username)}`;
+                const chatUrl = `https://chat.keymusecommerce.com/?user=${encodeURIComponent(username)}`;
                 window.open(chatUrl, "_blank");
                 onClose();
               }}
@@ -167,10 +167,10 @@ export default function CustomerServiceModal({ open, onClose }) {
                 outline: "none",
                 textAlign: "left",
                 transition: "all 0.2s ease",
-                borderBottom: "1px solid rgba(11, 99, 214, 0.08)",
+                borderBottom: "1px solid rgba(34, 184, 255, 0.08)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(11, 99, 214, 0.08)";
+                e.currentTarget.style.background = "rgba(34, 184, 255, 0.08)";
                 e.currentTarget.style.paddingLeft = "26px";
               }}
               onMouseLeave={(e) => {
@@ -203,14 +203,14 @@ export default function CustomerServiceModal({ open, onClose }) {
                 fontSize: 15,
                 fontWeight: 600,
                 color: "#071e2f",
-                borderBottom: "1px solid rgba(11, 99, 214, 0.08)",
+                borderBottom: "1px solid rgba(34, 184, 255, 0.08)",
                 outline: "none",
                 textAlign: "left",
                 transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
                 if (links.telegram1) {
-                  e.currentTarget.style.background = "rgba(11, 99, 214, 0.08)";
+                  e.currentTarget.style.background = "rgba(34, 184, 255, 0.08)";
                   e.currentTarget.style.paddingLeft = "26px";
                 }
               }}
@@ -251,7 +251,7 @@ export default function CustomerServiceModal({ open, onClose }) {
               }}
               onMouseEnter={(e) => {
                 if (links.telegram2) {
-                  e.currentTarget.style.background = "rgba(11, 99, 214, 0.08)";
+                  e.currentTarget.style.background = "rgba(34, 184, 255, 0.08)";
                   e.currentTarget.style.paddingLeft = "26px";
                 }
               }}
@@ -272,16 +272,16 @@ export default function CustomerServiceModal({ open, onClose }) {
             style={{
               textAlign: "center",
               padding: "16px 22px",
-              borderTop: "1px solid rgba(11, 99, 214, 0.12)",
-              background: "linear-gradient(180deg, rgba(11, 99, 214, 0.04), rgba(247, 245, 236, 0.5))",
+              borderTop: "1px solid rgba(34, 184, 255, 0.12)",
+              background: "linear-gradient(180deg, rgba(34, 184, 255, 0.04), rgba(247, 245, 236, 0.5))",
             }}
           >
             <button
               onClick={onClose}
               style={{
                 background: "transparent",
-                border: "2px solid #0b63d6",
-                color: "#0b63d6",
+                border: "2px solid #22B8FF",
+                color: "#22B8FF",
                 fontSize: 14,
                 fontWeight: 800,
                 cursor: "pointer",
@@ -293,13 +293,13 @@ export default function CustomerServiceModal({ open, onClose }) {
                 borderRadius: 8,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#0b63d6";
+                e.currentTarget.style.background = "#22B8FF";
                 e.currentTarget.style.color = "#ffffff";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(11, 99, 214, 0.3)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(34, 184, 255, 0.3)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#0b63d6";
+                e.currentTarget.style.color = "#22B8FF";
                 e.currentTarget.style.boxShadow = "none";
               }}
             >

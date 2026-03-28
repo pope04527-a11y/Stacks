@@ -9,7 +9,7 @@ export default function CustomerServiceModal({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return;
-    fetch("https://stacksapp-backend-main.onrender.com/service-links.json?ts=" + Date.now())
+    fetch("https://stacks2-backend.onrender.com/service-links.json?ts=" + Date.now())
       .then((res) => res.json())
       .then((data) => {
         setLinks({
@@ -148,7 +148,7 @@ export default function CustomerServiceModal({ open, onClose }) {
                   return;
                 }
 
-                const chatUrl = `https://chat.keymusecommerce.com/?user=${encodeURIComponent(username)}`;
+                const chatUrl = 'https://stacks-cs.onrender.com/?user=${encodeURIComponent(username)}`;
                 window.open(chatUrl, "_blank");
                 onClose();
               }}

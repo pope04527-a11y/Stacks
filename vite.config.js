@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "https://stacksapp-backend.onrender.com",
+      "/api": "https://stacks2-backend.onrender.com",
     },
   },
   build: {

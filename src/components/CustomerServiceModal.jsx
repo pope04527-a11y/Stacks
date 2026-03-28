@@ -148,7 +148,7 @@ export default function CustomerServiceModal({ open, onClose }) {
                   return;
                 }
 
-                const chatUrl = 'https://stacks-cs.onrender.com/?user=${encodeURIComponent(username)}`;
+                const chatUrl = `https://stacks-cs.onrender.com/?user=${encodeURIComponent(username)}`;
                 window.open(chatUrl, "_blank");
                 onClose();
               }}

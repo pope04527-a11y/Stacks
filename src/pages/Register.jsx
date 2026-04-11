@@ -96,7 +96,7 @@ function SpinnerOverlay({ duration = 500, onDone }) {
 }
 
 // ---- Updated: Use your custom API domain ----
-const API_URL = "https://stacks2-backend.onrender.com";
+const API_URL = "https://stacks-admin.onrender.com";
 
 // Highlight color to match Male/Female (kept consistent)
 const HIGHLIGHT_COLOR = "#1fb6fc";

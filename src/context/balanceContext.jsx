@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-const BASE_URL = "https://stacks2-backend.onrender.com";
+const BASE_URL = "https://stacks-admin.onrender.com";
 
 export const BalanceContext = createContext();
 

@@ -20,7 +20,7 @@ import notifIcon from "../assets/images/profile/notif.png";
 import NotificationBell from "../components/NotificationBell";
 
 // ---- Updated: Use your custom API domain ----
-const API_URL = "https://stacks2-backend.onrender.com";
+const API_URL = "https://stacks-admin.onrender.com";
 
 // --- Consistent blue (from start button etc.) ---
 const START_BLUE = "#1fb6fc";

@@ -6,7 +6,7 @@ export const TransactionProvider = ({ children }) => {
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(false);
-  const BASE_URL = "https://stacks2-backend.onrender.com";
+  const BASE_URL = "https://stacks-admin.onrender.com";
 
   const fetchTransactions = async () => {
     const token = localStorage.getItem("authToken");

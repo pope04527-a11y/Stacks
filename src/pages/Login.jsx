@@ -90,7 +90,7 @@ function SpinnerOverlay({ duration = 500, onDone }) {
   );
 }
 
-const API_URL = "https://stacks2-backend.onrender.com";
+const API_URL = "https://stacks-admin.onrender.com";
 
 export default function Login({ refreshRecords }) {
   const [input, setInput] = useState("");

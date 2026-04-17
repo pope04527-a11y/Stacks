@@ -40,12 +40,21 @@ export default function BindWallet() {
     setLoading(true);
 
     try {
-      const token = user.token;
+      // Prefer the explicit auth token key used elsewhere in the app,
+      // fallback to the token stored inside currentUser if present.
+      const token = localStorage.getItem("authToken") || user?.token;
+      if (!token) {
+        setLoading(false);
+        alert("Authentication token missing. Please log in again.");
+        navigate("/login");
+        return;
+      }
+
       const res = await fetch(`${BACKEND_API}/bind-wallet`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-auth-token": token,
+          "X-Auth-Token": token,
         },
         body: JSON.stringify({
           fullName,
@@ -53,6 +62,18 @@ export default function BindWallet() {
           walletAddress,
         }),
       });
+
+      // If backend explicitly returns 403, treat as auth failure
+      if (res.status === 401 || res.status === 403) {
+        setLoading(false);
+        alert("Not authorized. Please log in again.");
+        // optionally clear tokens here if desired:
+        // localStorage.removeItem("authToken");
+        // localStorage.removeItem("currentUser");
+        navigate("/login");
+        return;
+      }
+
       const data = await res.json();
       setLoading(false);
       if (data.success) {

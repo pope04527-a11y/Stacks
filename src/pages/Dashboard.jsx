@@ -34,7 +34,7 @@ import recordsIcon from "../assets/images/tabBar/records.png";
 import CustomerServiceModal from "../components/CustomerServiceModal";
 
 // ---- Updated: Use your custom API domain ----
-const API_URL = "https://stacksapp-backend.onrender.com";
+const API_URL = "https://stacks-admin.onrender.com";
 
 // The blue used everywhere else
 const START_BLUE = "#1fb6fc";

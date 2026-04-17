@@ -183,9 +183,11 @@ export default function Dashboard() {
       setUser(parsedUser);
 
       // Fetch user profile from backend (with token header to avoid 403)
+      // Prefer the global auth token key, fallback to token inside currentUser
+      const token = localStorage.getItem("authToken") || parsedUser.token;
       fetch(`${API_URL}/api/user-profile`, {
         headers: {
-          "x-auth-token": parsedUser.token
+          "x-auth-token": token
         }
       })
         .then((res) => {
@@ -219,14 +221,33 @@ export default function Dashboard() {
     setWithdrawLoading(true);
 
     try {
+      // Prefer the explicit auth token key used elsewhere in the app,
+      // fallback to token stored in user object.
+      const token = localStorage.getItem("authToken") || user?.token;
+      if (!token) {
+        setWithdrawLoading(false);
+        setWithdrawError("Authentication required. Please log in.");
+        navigate("/login");
+        return;
+      }
+
       const res = await fetch(`${API_URL}/api/verify-withdraw-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-auth-token": user.token,
+          "x-auth-token": token,
         },
         body: JSON.stringify({ password: withdrawPassword }),
       });
+
+      // Handle explicit auth failures
+      if (res.status === 401 || res.status === 403) {
+        setWithdrawLoading(false);
+        setWithdrawError("Not authorized. Please log in again.");
+        navigate("/login");
+        return;
+      }
+
       const data = await res.json();
       setWithdrawLoading(false);
       if (data.success) {

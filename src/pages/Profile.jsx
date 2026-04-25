@@ -345,6 +345,21 @@ export default function Profile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  // Poll for admin changes while profile is open (every 10s)
+  useEffect(() => {
+    let mounted = true;
+    const id = setInterval(async () => {
+      if (!mounted) return;
+      try {
+        await fetchProfile();
+      } catch (e) {
+        // ignore
+      }
+    }, 10000);
+    return () => { mounted = false; clearInterval(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Centralized handler for all protected routes
   const handleProtectedRoute = (targetPath) => {
     setDestination(targetPath);
@@ -416,6 +431,11 @@ export default function Profile() {
 
   // --- VIP badge logic ---
   const vipInfo = getVipBadgeInfo(profile.vipLevel);
+
+  // --- Credit score display ---
+  const creditValueRaw = typeof profile.creditScore !== 'undefined' ? Number(profile.creditScore) : 100;
+  const creditScore = Number.isFinite(creditValueRaw) ? Math.max(0, Math.min(100, Math.round(creditValueRaw))) : 100;
+  const creditWidth = `${creditScore}%`;
 
   return (
     <div className="bg-[#f6f7fb] min-h-screen pb-20">
@@ -490,9 +510,9 @@ export default function Profile() {
         <div className="mt-4 text-sm">
           <div className="mb-1" data-i18n="Credit Score:">Credit Score:</div>
           <div className="w-full h-2 bg-white/30 rounded-full overflow-hidden">
-            <div className="h-full bg-white" style={{ width: "100%" }} />
+            <div className="h-full bg-white" style={{ width: creditWidth, transition: "width 300ms ease" }} />
           </div>
-          <div className="text-right text-xs mt-1">100%</div>
+          <div className="text-right text-xs mt-1">{`${creditScore}%`}</div>
         </div>
 
         <div className="flex justify-between text-sm mt-4 font-medium">

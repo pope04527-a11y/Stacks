@@ -680,12 +680,27 @@ const Tasks = () => {
           });
         }
 
-        // refresh canonical profile and records after submit (background)
+        // ===== CRITICAL FIX: Refresh profile AND task records immediately =====
+        // This ensures the task count (todaysTasks) is recalculated from updated records
         (async () => {
-          try { await refreshProfile(); } catch (e) {}
-          try { if (typeof fetchTaskRecords === "function") await fetchTaskRecords(); } catch (e) {}
-          try { window.dispatchEvent(new Event("profile:refresh")); } catch (e) {}
-          try { window.dispatchEvent(new Event("balance:changed")); } catch (e) {}
+          try {
+            // Wait a bit for backend to fully process the task completion
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Refresh profile to get updated task count
+            await refreshProfile();
+            
+            // Refresh task records to get latest list
+            if (typeof fetchTaskRecords === "function") {
+              await fetchTaskRecords();
+            }
+            
+            // Force local state update to re-render with new counts
+            try { window.dispatchEvent(new Event("profile:refresh")); } catch (e) {}
+            try { window.dispatchEvent(new Event("balance:changed")); } catch (e) {}
+          } catch (e) {
+            console.error('Post-submit profile refresh failed:', e);
+          }
         })();
 
         setTimeout(() => {

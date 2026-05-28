@@ -15,11 +15,11 @@ export default function CustomerServiceModal({ open, onClose }) {
         setLinks({
           telegram1: data.telegram1 || "",
           telegram2: data.telegram2 || "",
-          customerService: data.whatsapp || "",
+          Signal: data.whatsapp || "",
         });
       })
       .catch(() => {
-        setLinks({ telegram1: "", telegram2: "", customerService: "" });
+        setLinks({ telegram1: "", telegram2: "", Signal: "" });
       });
   }, [open]);
 

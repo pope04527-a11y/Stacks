@@ -179,7 +179,7 @@ export default function CustomerServiceModal({ open, onClose }) {
               }}
             >
               {avatar}
-              <span style={{ flex: "0 1 auto" }} data-i18n="Customer Service">Customer Service</span>
+              <span style={{ flex: "0 1 auto" }} data-i18n="Customer Service">Signal</span>
               {arrowIcon}
             </button>
 

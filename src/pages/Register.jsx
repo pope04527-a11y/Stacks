@@ -203,6 +203,7 @@ export default function Register() {
 
   // NEW: open terms modal instead of navigating away
   const openTerms = (e) => {
+    // This handler is kept for safety but the anchor itself uses a more defensive handler below.
     e.preventDefault();
     setShowTermsModal(true);
   };
@@ -443,10 +444,29 @@ export default function Register() {
               {/* Make the words open modal TermsAndConditions page */}
               <a
                 href="/terms"
-                onClick={openTerms}
+                // Defensive handlers so clicks reliably open modal instead of toggling checkbox
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation(); // prevent label/input toggle
+                  setShowTermsModal(true);
+                }}
+                onMouseDown={(e) => {
+                  // stop propagation on mousedown to avoid input focusing/toggling before click
+                  e.stopPropagation();
+                }}
+                onKeyDown={(e) => {
+                  // allow keyboard activation (Enter / Space)
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowTermsModal(true);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
                 className="register-link-terms"
                 data-i18n="Terms and Conditions"
-                style={{ color: HIGHLIGHT_COLOR, fontWeight: 700, textDecoration: "none", marginLeft: 6 }}
+                style={{ color: HIGHLIGHT_COLOR, fontWeight: 700, textDecoration: "none", marginLeft: 6, cursor: "pointer" }}
               >
                 Terms and Conditions
               </a>

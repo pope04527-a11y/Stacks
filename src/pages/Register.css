@@ -218,6 +218,7 @@ html, body {
   border: none;
   box-shadow: 0 2px 9px 0 rgba(0,0,0,0.11);
   letter-spacing: 0.01em;
+  gap: 8px;
 }
 
 .register-checkbox {
@@ -231,6 +232,7 @@ html, body {
   font-weight: 600;
   color: #fff;
   cursor: pointer;
+  margin-right: 6px;
 }
 .register-link-terms {
   color: #b5d8ff;
@@ -238,6 +240,7 @@ html, body {
   font-weight: 700;
   margin-left: 4px;
   transition: color 0.14s;
+  cursor: pointer;
 }
 .register-link-terms:hover {
   color: #267dd8;
@@ -355,10 +358,10 @@ html, body {
   }
 }
 
-/* make the Terms link reliably clickable & accessible when inside the checkbox label */
+/* make the Terms link reliably clickable & accessible when outside the label */
 .register-link-terms {
   pointer-events: auto;     /* ensure clicks reach the anchor */
-  z-index: 200;             /* bring it above surrounding label content */
+  z-index: 200;             /* bring it above surrounding content */
   position: relative;       /* allow z-index to take effect */
   cursor: pointer;          /* show pointer on hover */
   outline: none;

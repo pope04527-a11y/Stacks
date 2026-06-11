@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/images/header/logo.svg";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -125,6 +125,11 @@ export default function Register() {
   // NEW: Terms modal state
   const [showTermsModal, setShowTermsModal] = useState(false);
 
+  // focus management for modal accessibility
+  const previouslyFocusedRef = useRef(null);
+  const modalRef = useRef(null);
+  const modalCloseBtnRef = useRef(null);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -203,23 +208,78 @@ export default function Register() {
 
   // NEW: open terms modal instead of navigating away
   const openTerms = (e) => {
-    // This handler is kept for safety but the anchor itself uses a more defensive handler below.
     e.preventDefault();
+    e.stopPropagation();
     setShowTermsModal(true);
   };
 
   // When terms modal is open, prevent body scroll
   useEffect(() => {
-    const prev = { overflow: document.body.style.overflow };
+    const prevOverflow = document.body.style.overflow;
     if (showTermsModal) {
+      previouslyFocusedRef.current = document.activeElement;
       document.body.style.overflow = "hidden";
+      // focus the close button after a tick
+      setTimeout(() => {
+        if (modalCloseBtnRef.current) modalCloseBtnRef.current.focus();
+      }, 0);
     } else {
-      document.body.style.overflow = prev.overflow || "";
+      document.body.style.overflow = prevOverflow || "";
+      // restore focus
+      try {
+        if (previouslyFocusedRef.current && previouslyFocusedRef.current.focus) {
+          previouslyFocusedRef.current.focus();
+        }
+      } catch (e) {}
     }
     return () => {
-      document.body.style.overflow = prev.overflow || "";
+      document.body.style.overflow = prevOverflow || "";
     };
   }, [showTermsModal]);
+
+  // Accessibility: close on Escape, trap focus inside modal
+  useEffect(() => {
+    if (!showTermsModal) return;
+
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        setShowTermsModal(false);
+        return;
+      }
+      if (e.key === "Tab") {
+        // simple focus trap
+        const root = modalRef.current;
+        if (!root) return;
+        const focusable = root.querySelectorAll(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [showTermsModal]);
+
+  // click outside modal content to close
+  const onOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setShowTermsModal(false);
+    }
+  };
 
   return (
     <div className="register-bg-hero flex items-center justify-center min-h-screen relative">
@@ -513,6 +573,7 @@ export default function Register() {
           role="dialog"
           aria-modal="true"
           aria-label="Terms and Conditions"
+          onClick={onOverlayClick}
           style={{
             position: "fixed",
             inset: 0,
@@ -525,6 +586,7 @@ export default function Register() {
           }}
         >
           <div
+            ref={modalRef}
             style={{
               width: "100%",
               maxWidth: 980,
@@ -541,6 +603,7 @@ export default function Register() {
               <div style={{ fontWeight: 700, fontSize: 16 }}>Terms and Conditions</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button
+                  ref={modalCloseBtnRef}
                   onClick={() => setShowTermsModal(false)}
                   style={{
                     background: "transparent",
@@ -550,6 +613,7 @@ export default function Register() {
                     cursor: "pointer",
                     fontWeight: 600
                   }}
+                  className="modal-close-button"
                 >
                   Cancel
                 </button>

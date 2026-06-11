@@ -122,6 +122,9 @@ export default function Register() {
   // customer service modal state
   const [showCustomerModal, setShowCustomerModal] = useState(false);
 
+  // NEW: Terms modal state
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -198,15 +201,24 @@ export default function Register() {
     }
   }, [showSpinner, navigate]);
 
-  // Navigate to the Terms page when Terms link is clicked.
-  // Keep default prevented so it doesn't toggle the checkbox also.
+  // NEW: open terms modal instead of navigating away
   const openTerms = (e) => {
     e.preventDefault();
-    // Replace the route below with the route your app uses for TermsAndConditions.
-    navigate("/terms"); // common route
-    // fallback attempt if your router uses a different path:
-    // navigate("/terms-and-conditions");
+    setShowTermsModal(true);
   };
+
+  // When terms modal is open, prevent body scroll
+  useEffect(() => {
+    const prev = { overflow: document.body.style.overflow };
+    if (showTermsModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = prev.overflow || "";
+    }
+    return () => {
+      document.body.style.overflow = prev.overflow || "";
+    };
+  }, [showTermsModal]);
 
   return (
     <div className="register-bg-hero flex items-center justify-center min-h-screen relative">
@@ -428,7 +440,7 @@ export default function Register() {
             />
             <label htmlFor="agreed" className="register-checkbox-label" data-i18n="I agree with Terms and Conditions">
               I agree with{" "}
-              {/* Make the words clickable and navigate to TermsAndConditions page */}
+              {/* Make the words open modal TermsAndConditions page */}
               <a
                 href="/terms"
                 onClick={openTerms}
@@ -474,6 +486,88 @@ export default function Register() {
 
       {/* Customer service modal */}
       <CustomerServiceModal open={showCustomerModal} onClose={() => setShowCustomerModal(false)} />
+
+      {/* NEW: Terms & Conditions Modal */}
+      {showTermsModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Terms and Conditions"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 30000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.6)",
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 980,
+              height: "90vh",
+              background: "#fff",
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: "0 12px 50px rgba(0,0,0,0.6)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid #eee" }}>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>Terms and Conditions</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => setShowTermsModal(false)}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid #ddd",
+                    padding: "6px 12px",
+                    borderRadius: 8,
+                    cursor: "pointer",
+                    fontWeight: 600
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            {/* Modal content area: render TermsAndConditions component inside a wrapper.
+                We add a small override so the fixed header inside TermsAndConditions doesn't conflict.
+                We keep this wrapper's overflow scrollable so the terms content can be read. */}
+            <div style={{ flex: 1, overflow: "auto", position: "relative", background: "#fff" }} className="modal-root-terms">
+              <style>
+                {`
+                  /* Hide the fixed top bar from TermsAndConditions when rendered inside this modal */
+                  .modal-root-terms .fixed.top-0.left-0.right-0 { display: none !important; }
+                  /* Adjust absolute content positioning from TermsAndConditions to flow naturally inside modal */
+                  .modal-root-terms .absolute.top-16.bottom-0.left-0.right-0 {
+                    position: relative !important;
+                    top: 0 !important;
+                    bottom: 0 !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    height: auto !important;
+                    overflow: visible !important;
+                  }
+                  /* Ensure internal paddings look good */
+                  .modal-root-terms .absolute.top-16.bottom-0.left-0.right-0 > * {
+                    padding: 18px !important;
+                    background: transparent !important;
+                  }
+                `}
+              </style>
+              <div style={{ padding: 0 }}>
+                <TermsAndConditions />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

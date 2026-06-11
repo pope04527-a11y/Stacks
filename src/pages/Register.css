@@ -354,3 +354,26 @@ html, body {
     height: 38px;
   }
 }
+
+/* make the Terms link reliably clickable & accessible when inside the checkbox label */
+.register-link-terms {
+  pointer-events: auto;     /* ensure clicks reach the anchor */
+  z-index: 200;             /* bring it above surrounding label content */
+  position: relative;       /* allow z-index to take effect */
+  cursor: pointer;          /* show pointer on hover */
+  outline: none;
+  -webkit-tap-highlight-color: transparent; /* mobile: avoid highlight blocking clicks */
+}
+
+/* visible focus ring for keyboard users */
+.register-link-terms:focus,
+.register-link-terms:active {
+  outline: 3px solid rgba(27, 146, 118, 0.18);
+  border-radius: 6px;
+}
+
+/* small improvement for modal wrapper (optional but recommended) */
+.modal-root-terms {
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}

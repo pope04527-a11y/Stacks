@@ -208,8 +208,8 @@ export default function Register() {
 
   // NEW: open terms modal instead of navigating away
   const openTerms = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e && e.preventDefault && e.preventDefault();
+    // open modal and focus management handled in effect
     setShowTermsModal(true);
   };
 
@@ -489,7 +489,8 @@ export default function Register() {
               )}
             </div>
           </div>
-          {/* Checkbox */}
+
+          {/* Checkbox + separated Terms link (anchor moved OUT of label for reliability) */}
           <div className="register-checkbox-row">
             <input
               type="checkbox"
@@ -499,39 +500,34 @@ export default function Register() {
               onChange={handleChange}
               id="agreed"
             />
-            <label htmlFor="agreed" className="register-checkbox-label" data-i18n="I agree with Terms and Conditions">
-              I agree with{" "}
-              {/* Make the words open modal TermsAndConditions page */}
-              <a
-                href="/terms"
-                // Defensive handlers so clicks reliably open modal instead of toggling checkbox
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation(); // prevent label/input toggle
-                  setShowTermsModal(true);
-                }}
-                onMouseDown={(e) => {
-                  // stop propagation on mousedown to avoid input focusing/toggling before click
-                  e.stopPropagation();
-                }}
-                onKeyDown={(e) => {
-                  // allow keyboard activation (Enter / Space)
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowTermsModal(true);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                className="register-link-terms"
-                data-i18n="Terms and Conditions"
-                style={{ color: HIGHLIGHT_COLOR, fontWeight: 700, textDecoration: "none", marginLeft: 6, cursor: "pointer" }}
-              >
-                Terms and Conditions
-              </a>
+            <label htmlFor="agreed" className="register-checkbox-label" data-i18n="I agree with">
+              I agree with
             </label>
+
+            {/* Anchor is a sibling (not inside label). This ensures the label only toggles the checkbox
+                and the link reliably receives click events to open the modal. */}
+            <a
+              href="#terms"
+              className="register-link-terms"
+              onClick={(e) => {
+                e.preventDefault();
+                openTerms(e);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openTerms(e);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              data-i18n="Terms and Conditions"
+              style={{ color: HIGHLIGHT_COLOR, fontWeight: 700, textDecoration: "none", marginLeft: 8 }}
+            >
+              Terms and Conditions
+            </a>
           </div>
+
           <button type="submit" className="register-btn" data-i18n="Register">
             Register
           </button>

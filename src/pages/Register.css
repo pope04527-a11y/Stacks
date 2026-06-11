@@ -372,8 +372,19 @@ html, body {
   border-radius: 6px;
 }
 
+/* Focus styling for the modal close button */
+.modal-close-button:focus {
+  outline: 3px solid rgba(27, 146, 118, 0.18);
+  border-radius: 6px;
+}
+
 /* small improvement for modal wrapper (optional but recommended) */
 .modal-root-terms {
   -webkit-overflow-scrolling: touch;
   touch-action: manipulation;
+}
+
+/* ensure the modal overlay stacks above everything */
+[role="dialog"][aria-modal="true"] {
+  z-index: 30000 !important;
 }

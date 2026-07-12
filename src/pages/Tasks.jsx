@@ -1,3 +1,4 @@
+// File: Tasks (6).jsx
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTaskRecords } from "../context/TaskRecordsContext";
@@ -218,7 +219,7 @@ async function fetchAssetsFromStaticJson(max = 500) {
   }
 }
 
-// --- Fallback helpers ---
+// --- Fallback helpers (left in place, but not used when local-only is selected) ---
 async function fetchCloudinaryTagList(tag = CLOUDINARY_TAG) {
   if (!tag) return null;
   const url = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/list/${encodeURIComponent(tag)}.json`;
@@ -248,7 +249,7 @@ function makeLocalProductList(start = 100, end = 200) {
   return list;
 }
 
-// --- Old fallback builder replaced to prefer local images in public/assets/images/products ---
+// --- Fallback builder now uses local images only ---
 function makeFallbackImageList() {
   // Use local product images from public/assets/images/products/product1(100).png .. product1(200).png
   return makeLocalProductList(100, 200);
@@ -462,40 +463,20 @@ const Tasks = () => {
   }, []);
 
   // Load product pool and persist to localStorage so future navigations don't wait.
-  // We keep the original reshuffle/validation behavior (loadValidatedProductGrid + 7s interval) intact.
+  // Now: local-only behaviour — use public/assets/images/products/product1(100).png..product1(200).png
   useEffect(() => {
     let cancelled = false;
 
     async function loadPool() {
       try {
-        // Try static JSON first
-        const fromStatic = await fetchAssetsFromStaticJson(1000);
+        // Local-only: build list from public assets and use it
+        const localList = makeLocalProductList(100, 200);
         if (cancelled) return;
-        if (fromStatic && fromStatic.length) {
-          const shuffledPool = shuffle([...fromStatic]);
-          setCloudinaryPool(shuffledPool);
-          setProductGridCandidates(shuffledPool);
-          try { localStorage.setItem("productGridCache", JSON.stringify(shuffledPool)); } catch (e) {}
-          return;
-        }
-
-        // Tag list fallback
-        const tagUrls = await fetchCloudinaryTagList(CLOUDINARY_TAG);
-        if (cancelled) return;
-        if (tagUrls && tagUrls.length) {
-          const shuffledTagPool = shuffle([...tagUrls]);
-          setCloudinaryPool(shuffledTagPool);
-          setProductGridCandidates(shuffledTagPool);
-          try { localStorage.setItem("productGridCache", JSON.stringify(shuffledTagPool)); } catch (e) {}
-          return;
-        }
-
-        // final fallback pattern - now uses local public assets product1(100)..product1(200)
-        const fallback = makeFallbackImageList();
-        const shuffledFallback = shuffle([...fallback]);
-        setCloudinaryPool(shuffledFallback);
-        setProductGridCandidates(shuffledFallback);
-        try { localStorage.setItem("productGridCache", JSON.stringify(shuffledFallback)); } catch (e) {}
+        const shuffledLocal = shuffle([...localList]);
+        setCloudinaryPool(shuffledLocal);
+        setProductGridCandidates(shuffledLocal);
+        try { localStorage.setItem("productGridCache", JSON.stringify(shuffledLocal)); } catch (e) {}
+        return;
       } catch (err) {
         console.warn('Product pool load failed:', err);
       }
@@ -727,8 +708,9 @@ const Tasks = () => {
     return shuffled.slice(0, 9);
   }
 
+  // Ensure imageListFallback uses local list as well
   function imageListFallback() {
-    return Array.from({ length: totalImages }, (_, i) => `${CLOUDINARY_BASE}product1_${i + imageStart}.jpg`);
+    return makeLocalProductList(100, 200);
   }
 
   const handleGridImgError = (e, index) => {

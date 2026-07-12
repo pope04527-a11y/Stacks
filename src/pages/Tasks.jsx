@@ -236,8 +236,22 @@ async function fetchCloudinaryTagList(tag = CLOUDINARY_TAG) {
   }
 }
 
+// --- New: local public assets helper ---
+// Build a list of local product image paths product1(100).png -> product1(200).png
+function makeLocalProductList(start = 100, end = 200) {
+  const base = "/assets/images/products/";
+  const list = [];
+  for (let i = start; i <= end; i++) {
+    // file names follow product1(100).png pattern
+    list.push(`${base}product1(${i}).png`);
+  }
+  return list;
+}
+
+// --- Old fallback builder replaced to prefer local images in public/assets/images/products ---
 function makeFallbackImageList() {
-  return Array.from({ length: totalImages }, (_, i) => `${CLOUDINARY_BASE}product1_${i + imageStart}.jpg`);
+  // Use local product images from public/assets/images/products/product1(100).png .. product1(200).png
+  return makeLocalProductList(100, 200);
 }
 
 // --- Component starts ---
@@ -476,7 +490,7 @@ const Tasks = () => {
           return;
         }
 
-        // final fallback pattern
+        // final fallback pattern - now uses local public assets product1(100)..product1(200)
         const fallback = makeFallbackImageList();
         const shuffledFallback = shuffle([...fallback]);
         setCloudinaryPool(shuffledFallback);

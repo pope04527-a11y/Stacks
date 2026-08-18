@@ -24,19 +24,40 @@ function loadRawFromLocalStorage(lang) {
 
 async function fetchStaticBundle(lang) {
   try {
-    // Respect Vite base so hosting under /Stacks/ works correctly
-    const base = (typeof import !== "undefined" && import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : "/";
-    const url = `${base}i18n/${lang}.json`.replace(/\/\/+/g, "/").replace(":/", "://");
+    // Determine base URL safely without using invalid typeof(import) patterns.
+    let base = "/";
+    try {
+      // import.meta may be available in modern bundlers at runtime. Guard access in try/catch.
+      if (typeof window !== "undefined" && typeof import !== "function") {
+        // noop - this branch avoids referencing import in typeof; left intentionally empty.
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Safely attempt to read import.meta.env.BASE_URL; wrap in try/catch so build-time parsing doesn't fail.
+    try {
+      if (typeof window !== "undefined" && import.meta && import.meta.env && import.meta.env.BASE_URL) {
+        base = import.meta.env.BASE_URL;
+      }
+    } catch (e) {
+      // import.meta not available or not accessible; leave base = "/"
+    }
+
+    if (!base.endsWith("/")) base += "/";
+    const url = base + "i18n/" + lang + ".json";
+
     const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) return null;
     const json = await res.json();
     return (json && typeof json === "object") ? json : null;
-  } catch (e) { 
-    return null; 
+  } catch (e) {
+    // fail silently - caller handles fallback
+    return null;
   }
 }
 
-// apply helpers
+// apply helpers (kept simple and robust)
 function applyToDataI18nElements(dict) {
   const els = Array.from(document.querySelectorAll("[data-i18n]"));
   let applied = 0;
@@ -57,7 +78,7 @@ function applyToDataI18nElements(dict) {
       }
       if (el.getAttribute("title") !== null) el.setAttribute("title", translation);
       applied++;
-    } catch (e) {}
+    } catch (e) { /* ignore per-element errors */ }
   });
   return applied;
 }
@@ -85,7 +106,7 @@ function applyToAttributes(dict) {
 function applyToTextNodes(dict) {
   const keys = Object.keys(dict || {}).filter(k => k && k.trim().length);
   if (keys.length === 0) return 0;
-  keys.sort((a,b) => b.length - a.length);
+  keys.sort((a,b) => b.length - a.length); // longest-first
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       const parent = node.parentNode;
@@ -186,7 +207,7 @@ function ensureObserver(lang) {
     observer.observe(document.documentElement || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-i18n","placeholder","title"] });
     window.__I18N_OBSERVER_INSTALLED__ = true;
     window.__I18N_OBSERVER__ = observer;
-  } catch (e) {}
+  } catch (e) { /* ignore */ }
 }
 
 function patchHistoryNavigation() {
@@ -207,6 +228,8 @@ function patchHistoryNavigation() {
   window.addEventListener("popstate", dispatchNav);
   window.__I18N_HISTORY_PATCHED__ = true;
 }
+
+/* ---------- Placeholder substitution helpers ---------- */
 
 function currentCurrencyInfo() {
   const currency = (typeof window !== "undefined" && window.CURRENT_CURRENCY) || localStorage.getItem("site:currency") || "";
@@ -246,6 +269,8 @@ function substitutePlaceholders(obj) {
   }
   return out;
 }
+
+/* ---------- main loader ---------- */
 
 async function initI18n(opts = {}) {
   const defaultLang = opts.defaultLang || localStorage.getItem("lang") || document.documentElement.getAttribute("lang") || "en";

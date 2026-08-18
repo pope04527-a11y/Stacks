@@ -31,10 +31,10 @@ jobs:
 
       - name: Verify dist contents
         run: |
-          echo "dist listing:"
-          ls -la dist || (echo "dist missing" && exit 1)
-          echo "first 60 lines of dist/index.html:"
-          sed -n '1,60p' dist/index.html || true
+          echo "== dist listing =="
+          ls -la dist || (echo "❌ dist missing" && exit 1)
+          echo "== first 80 lines of dist/index.html =="
+          sed -n '1,80p' dist/index.html || true
 
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v1

@@ -1,90 +1,83 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://stacks-admin.onrender.com";
+export const SettingsContext = createContext(null);
 
-const SettingsContext = createContext({
-  settings: null,
-  loading: true,
-  refresh: async () => {},
-  currency: "",
-  formatAmount: (v) => String(v),
-});
-
-export const useSettings = () => useContext(SettingsContext);
-
-/**
- * SettingsProvider
- * - Fetches settings from GET /api/settings on mount
- * - Exposes: settings, loading, refresh(), currency (raw string), formatAmount()
- *
- * formatAmount: returns the numeric value to 2 decimals followed by a space and the raw currency string
- * Example: 0.00 USDT  or  12.34 GBP
- */
-export const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const parseResponseToSettings = (json) => {
-    // Accept multiple shapes:
-    // 1) { success: true, settings: {...} }
-    // 2) { settings: {...} }
-    // 3) direct settings object { currency: "USDT", ... }
-    if (!json) return null;
-    if (json.success && json.settings) return json.settings;
-    if (json.settings) return json.settings;
-    // fallback: if it looks like a settings object (has currency or siteName) return it
-    if (typeof json === "object" && (json.currency || json.siteName || json.defaultVip)) return json;
-    return null;
+/*
+  Non-blocking SettingsProvider
+  - Provides immediate defaults so the UI can render even when network is blocked.
+  - Attempts to fetch remote settings in background and merges them when available.
+  - Falls back to a site-local settings.json (if you add one later) via import.meta.env.BASE_URL.
+*/
+export function SettingsProvider({ children }) {
+  const defaultSettings = {
+    siteName: "STACKS",
+    theme: "light",
+    currency: "USD",
+    // add any keys your app expects so components don't crash
   };
 
-  const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/settings`);
-      if (!res.ok) {
-        // If the endpoint returns 4xx/5xx, we still avoid crashing — keep previous settings
-        console.warn("Failed to fetch settings, status:", res.status);
-        setLoading(false);
-        return;
-      }
-      const json = await res.json();
-      const s = parseResponseToSettings(json);
-      setSettings(s);
-    } catch (err) {
-      console.error("Settings fetch error:", err);
-      // don't wipe settings on transient error
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [settings, setSettings] = useState(defaultSettings);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchSettings();
-    // OPTIONAL: later you can add a websocket/socket listener here that calls setSettings(...) when admin updates settings
+    let mounted = true;
+
+    async function load() {
+      setLoading(true);
+      // 1) Try API (may be blocked by CORS)
+      try {
+        const resp = await fetch("https://stacks-admin.onrender.com/api/settings", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (resp && resp.ok) {
+          const data = await resp.json();
+          if (mounted && data && typeof data === "object") {
+            setSettings(prev => ({ ...prev, ...data }));
+          }
+        } else {
+          // non-OK - we'll fall back to local next
+          // console.warn("Settings API returned", resp && resp.status);
+        }
+      } catch (e) {
+        // network/CORS failure - fall back
+        // console.warn("Remote settings fetch failed, falling back to local/defaults", e);
+      }
+
+      // 2) Try local fallback shipped with site (optional). Use Vite base to build correct path.
+      try {
+        const base = typeof import.meta !== "undefined" && import.meta.env && import.meta.env.BASE_URL
+          ? import.meta.env.BASE_URL
+          : "/";
+        const fallbackUrl = `${base}settings.json`;
+        const fallbackResp = await fetch(fallbackUrl, { cache: "no-store" });
+        if (fallbackResp && fallbackResp.ok) {
+          const localData = await fallbackResp.json();
+          if (mounted && localData && typeof localData === "object") {
+            setSettings(prev => ({ ...prev, ...localData }));
+          }
+        }
+      } catch (e) {
+        // ignore - keep defaults
+      }
+
+      if (mounted) setLoading(false);
+    }
+
+    // fire-and-forget background load — UI already has defaults
+    load();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const currency = settings?.currency ?? "";
-
-  const formatAmount = (value, opts = {}) => {
-    const decimals = Number.isInteger(opts.decimals) ? opts.decimals : 2;
-    const amount = Number(value || 0);
-    const num = amount.toFixed(decimals);
-    if (!currency) return num;
-    // Return numeric amount followed by a space and the exact currency string stored in settings
-    return `${num} ${currency}`;
-  };
-
   return (
-    <SettingsContext.Provider
-      value={{
-        settings,
-        loading,
-        refresh: fetchSettings,
-        currency,
-        formatAmount,
-      }}
-    >
+    <SettingsContext.Provider value={{ settings, loading }}>
       {children}
     </SettingsContext.Provider>
   );
-};
+}
+
+export default SettingsContext;

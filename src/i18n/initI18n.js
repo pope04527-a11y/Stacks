@@ -24,11 +24,17 @@ function loadRawFromLocalStorage(lang) {
 
 async function fetchStaticBundle(lang) {
   try {
-    const res = await fetch(`/i18n/${lang}.json`, { cache: "no-cache" });
+    // Respect Vite base so hosting under /Stacks/ works correctly
+    const base = (typeof import !== "undefined" && import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : "/";
+    const url = `${base}i18n/${lang}.json`.replace(/\/\/+/g, "/").replace(":/", "://"); // normalize
+    const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) return null;
     const json = await res.json();
     return (json && typeof json === "object") ? json : null;
-  } catch (e) { return null; }
+  } catch (e) { 
+    // fail silently - caller handles fallback
+    return null; 
+  }
 }
 
 // apply helpers (kept simple and robust)

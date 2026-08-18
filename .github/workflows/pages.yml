@@ -23,7 +23,7 @@ jobs:
           node-version: 18
           cache: "npm"
 
-      - name: Install dependencies (use npm install to avoid lockfile mismatch failures)
+      - name: Install dependencies (use npm install to avoid lockfile mismatch)
         run: npm install --no-audit --no-fund
 
       - name: Build

@@ -1,0 +1,81 @@
+name: Build and deploy to gh-pages (by git)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure SPA fallback (copy index.html -> 404.html)
+        run: |
+          if [ -f dist/index.html ]; then
+            cp -f dist/index.html dist/404.html
+            echo "Copied dist/index.html to dist/404.html"
+          else
+            echo "dist/index.html not found" && exit 1
+          fi
+
+      - name: Deploy to gh-pages branch (force)
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          # configure git user
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # ensure we have a clean working tree
+          git checkout --progress --force main
+
+          # create orphan gh-pages branch
+          git branch -D gh-pages || true
+          git checkout --orphan gh-pages
+
+          # remove all files from index (but keep .git)
+          git rm -rf . || true
+
+          # copy build output into repo root
+          cp -a dist/. .
+
+          # if you have a CNAME or want to use a custom domain, ensure it's present here:
+          # If you need to publish CNAME, uncomment and edit:
+          # echo "chat.keymusecommerce.com" > CNAME
+
+          git add --all
+          # if nothing changed, still continue
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy site to gh-pages (by GitHub Actions) [skip ci]"
+            # push the orphan branch to gh-pages
+            git push -f "https://${GH_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+          fi
+
+          # return to main branch
+          git checkout -f main

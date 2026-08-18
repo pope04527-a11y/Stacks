@@ -1,90 +1,97 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-
-const API_URL = process.env.REACT_APP_API_URL || "https://stacks-admin.onrender.com";
-
-const SettingsContext = createContext({
-  settings: null,
-  loading: true,
-  refresh: async () => {},
-  currency: "",
-  formatAmount: (v) => String(v),
-});
-
-export const useSettings = () => useContext(SettingsContext);
+import React, { createContext, useEffect, useState } from "react";
 
 /**
- * SettingsProvider
- * - Fetches settings from GET /api/settings on mount
- * - Exposes: settings, loading, refresh(), currency (raw string), formatAmount()
+ * SettingsContext (non-blocking)
  *
- * formatAmount: returns the numeric value to 2 decimals followed by a space and the raw currency string
- * Example: 0.00 USDT  or  12.34 GBP
+ * - Immediately provides sensible default settings so the UI can render.
+ * - Attempts to fetch remote settings in the background (won't block UI).
+ * - Falls back to a site-local settings.json (if present under the Vite base) when the API is unreachable.
+ * - Merges remote settings into defaults to avoid missing keys.
  */
-export const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  const parseResponseToSettings = (json) => {
-    // Accept multiple shapes:
-    // 1) { success: true, settings: {...} }
-    // 2) { settings: {...} }
-    // 3) direct settings object { currency: "USDT", ... }
-    if (!json) return null;
-    if (json.success && json.settings) return json.settings;
-    if (json.settings) return json.settings;
-    // fallback: if it looks like a settings object (has currency or siteName) return it
-    if (typeof json === "object" && (json.currency || json.siteName || json.defaultVip)) return json;
-    return null;
+export const SettingsContext = createContext(null);
+
+export function SettingsProvider({ children }) {
+  const defaultSettings = {
+    siteName: "STACKS",
+    theme: "light",
+    currency: "USD",
+    currencySymbol: "$",
+    // add other expected defaults to avoid client errors
   };
 
-  const fetchSettings = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/settings`);
-      if (!res.ok) {
-        // If the endpoint returns 4xx/5xx, we still avoid crashing — keep previous settings
-        console.warn("Failed to fetch settings, status:", res.status);
-        setLoading(false);
-        return;
-      }
-      const json = await res.json();
-      const s = parseResponseToSettings(json);
-      setSettings(s);
-    } catch (err) {
-      console.error("Settings fetch error:", err);
-      // don't wipe settings on transient error
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [settings, setSettings] = useState(defaultSettings);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchSettings();
-    // OPTIONAL: later you can add a websocket/socket listener here that calls setSettings(...) when admin updates settings
+    let mounted = true;
+
+    async function loadSettings() {
+      // Do not block rendering. Only set loading for informational purposes.
+      setLoading(true);
+
+      // Attempt remote API first (best-effort only)
+      try {
+        const apiUrl = "https://stacks-admin.onrender.com/api/settings";
+        const resp = await fetch(apiUrl, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (resp && resp.ok) {
+          const apiData = await resp.json();
+          if (mounted) {
+            setSettings(prev => ({ ...prev, ...apiData }));
+            setLoading(false);
+            return;
+          }
+        } else {
+          // non-200 status - fall through to fallback
+          console.warn("Settings API responded with status", resp && resp.status);
+        }
+      } catch (err) {
+        // network / CORS / other error - do not throw, fall back below
+        console.warn("Fetching settings from API failed (non-blocking). Using fallback/defaults.", err);
+      }
+
+      // Fallback: attempt to load a static settings.json from the built site
+      try {
+        const base = import.meta.env.BASE_URL || "/";
+        const fallbackUrl = `${base}settings.json`;
+        const fallbackResp = await fetch(fallbackUrl, { cache: "no-store" });
+        if (fallbackResp && fallbackResp.ok) {
+          const fallbackData = await fallbackResp.json();
+          if (mounted) {
+            setSettings(prev => ({ ...prev, ...fallbackData }));
+            setLoading(false);
+            return;
+          }
+        } else {
+          console.warn("Fallback settings not found at", fallbackUrl, "status:", fallbackResp && fallbackResp.status);
+        }
+      } catch (err) {
+        console.warn("Failed to load fallback settings (non-blocking):", err);
+      }
+
+      // Final fallback: keep defaults (already set) and stop loading.
+      if (mounted) {
+        setLoading(false);
+      }
+    }
+
+    // Start background load (non-blocking)
+    loadSettings();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const currency = settings?.currency ?? "";
-
-  const formatAmount = (value, opts = {}) => {
-    const decimals = Number.isInteger(opts.decimals) ? opts.decimals : 2;
-    const amount = Number(value || 0);
-    const num = amount.toFixed(decimals);
-    if (!currency) return num;
-    // Return numeric amount followed by a space and the exact currency string stored in settings
-    return `${num} ${currency}`;
-  };
-
   return (
-    <SettingsContext.Provider
-      value={{
-        settings,
-        loading,
-        refresh: fetchSettings,
-        currency,
-        formatAmount,
-      }}
-    >
+    <SettingsContext.Provider value={{ settings, loading }}>
       {children}
     </SettingsContext.Provider>
   );
-};
+}
+
+export default SettingsProvider;
